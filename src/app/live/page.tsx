@@ -192,7 +192,7 @@ const Index: FC = () => {
             {showGif && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-white">
                     <img 
-                        src={typeof logoGif === 'string' ? logoGif : (logoGif as { src: string }).src} 
+                        src={String(typeof logoGif === 'string' ? logoGif : (logoGif as { src: string }).src)} 
                         alt="Loading" 
                         className="w-[450px] h-auto lg:w-[600px] lg:h-auto object-contain" 
                     />
