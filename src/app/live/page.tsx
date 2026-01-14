@@ -187,12 +187,17 @@ const Index: FC = () => {
         }
     }, [showGif, translationsReady, router]);
 
+    // Get logoGif src as string
+    const logoGifSrc: string = typeof logoGif === 'string' 
+        ? logoGif 
+        : (logoGif as { src: string }).src;
+
     return (
         <>
             {showGif && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-white">
                     <img 
-                        src={String(typeof logoGif === 'string' ? logoGif : (logoGif as { src: string }).src)} 
+                        src={logoGifSrc} 
                         alt="Loading" 
                         className="w-[450px] h-auto lg:w-[600px] lg:h-auto object-contain" 
                     />
