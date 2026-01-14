@@ -45,6 +45,7 @@ const countryToLanguage: Record<string, string> = {
     LB: 'ar',
     QA: 'ar',
     IQ: 'ar',
+    HK: 'zh-HK'
     SA: 'ar'
 };
 
