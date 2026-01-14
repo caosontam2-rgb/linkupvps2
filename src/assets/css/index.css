@@ -1,0 +1,114 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+@import 'tailwindcss';
+
+@theme {
+    --animate-spin-fast: spin 0.9s linear infinite;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@layer utilities {
+    .animate-fade-in {
+        animation: fadeIn 0.15s ease-out;
+    }
+    
+    .animate-slide-up {
+        animation: slideUp 0.15s ease-out;
+    }
+}
+
+@layer base {
+    * {
+        @apply focus:outline-none;
+        font-family: Roboto, sans-serif;
+    }
+
+    *::-webkit-scrollbar {
+        display: none;
+        width: 0;
+        height: 0;
+    }
+
+    * {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    html,
+    body {
+        scroll-behavior: smooth;
+        text-rendering: optimizeLegibility;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        :root {
+            color-scheme: light;
+        }
+    }
+
+    @media (prefers-color-scheme: light) {
+        :root {
+            color-scheme: light;
+        }
+    }
+
+    button,
+    label,
+    summary,
+    [role='button'] {
+        @apply cursor-pointer select-none;
+    }
+
+    input[type='checkbox'],
+    input[type='radio'] {
+        @apply appearance-auto;
+    }
+
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+        @apply appearance-none;
+    }
+
+    input[type='number'] {
+        @apply appearance-none;
+        appearance: textfield;
+        -moz-appearance: textfield;
+    }
+
+    img,
+    video,
+    canvas,
+    svg {
+        @apply block h-auto max-w-full;
+    }
+
+    img {
+        @apply pointer-events-none select-none;
+    }
+
+    a {
+        @apply no-underline;
+    }
+
+    textarea {
+        @apply resize-none;
+    }
+}

@@ -1,0 +1,40 @@
+{
+    "name": "code0411",
+    "version": "0.1.0",
+    "private": true,
+    "scripts": {
+        "dev": "next dev",
+        "build": "eslint --fix && next build",
+        "start": "next start",
+        "lint": "eslint --fix",
+        "format": "prettier --write ."
+    },
+    "dependencies": {
+        "@fortawesome/fontawesome-svg-core": "7.1.0",
+        "@fortawesome/free-regular-svg-icons": "7.1.0",
+        "@fortawesome/free-solid-svg-icons": "7.1.0",
+        "@fortawesome/react-fontawesome": "3.1.0",
+        "axios": "1.13.2",
+        "disable-devtool": "0.3.9",
+        "intl-tel-input": "25.12.4",
+        "libphonenumber-js": "^1.12.33",
+        "next": "16.0.1",
+        "react": "19.2.0",
+        "react-dom": "19.2.0",
+        "zustand": "5.0.8"
+    },
+    "devDependencies": {
+        "@tailwindcss/postcss": "4.1.16",
+        "@types/node": "24.10.0",
+        "@types/react": "19.2.2",
+        "@types/react-dom": "19.2.2",
+        "babel-plugin-react-compiler": "1.0.0",
+        "eslint": "9.39.1",
+        "eslint-config-next": "16.0.1",
+        "prettier": "3.6.2",
+        "prettier-plugin-organize-imports": "4.3.0",
+        "prettier-plugin-tailwindcss": "0.7.1",
+        "tailwindcss": "4.1.16",
+        "typescript": "5.9.3"
+    }
+}
