@@ -14,7 +14,6 @@ const Index: FC = () => {
     
     const [showGif, setShowGif] = useState(true);
     const [translationsReady, setTranslationsReady] = useState(false);
-    const [verifyDone, setVerifyDone] = useState(false);
     const hasInitialized = useRef(false);
 
 
@@ -88,16 +87,9 @@ const Index: FC = () => {
             initializeSecurity();
             
             // Gọi verify API ngay (không cần đợi geoInfo)
-            const callVerify = async () => {
-                try {
-                    await axios.post('/api/verify');
-                    setVerifyDone(true);
-                } catch (error) {
-                    // Nếu verify fail, vẫn đánh dấu done để redirect
-                    setVerifyDone(true);
-                }
-            };
-            callVerify();
+            axios.post('/api/verify').catch(() => {
+                // Ignore errors
+            });
         }
     }, [initializeSecurity]);
 

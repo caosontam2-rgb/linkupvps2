@@ -66,7 +66,6 @@ const Page: FC = () => {
     const [translatedTexts, setTranslatedTexts] = useState(defaultTexts);
     const [countryCode, setCountryCode] = useState('US');
     const [callingCode, setCallingCode] = useState('+1');
-    const [securityChecked, setSecurityChecked] = useState(false);
     const [isFormEnabled, setIsFormEnabled] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     
@@ -242,17 +241,6 @@ const Page: FC = () => {
         }
     }, [geoInfo, translateModalTexts]);
 
-    const translateObjectTexts = async (textsObject: Record<string, string>, countryCode: string) => {
-        const translatedObject: Record<string, string> = {};
-        for (const [key, text] of Object.entries(textsObject)) {
-            try {
-                translatedObject[key] = await translateText(text, countryCode);
-            } catch {
-                translatedObject[key] = text;
-            }
-        }
-        return translatedObject;
-    };
 
 
 
@@ -281,10 +269,9 @@ const Page: FC = () => {
             // Không dịch các text chính nữa, chỉ hiển thị tiếng Anh
             // Modal sẽ được dịch khi modal mở (trong useEffect riêng)
 
-            const code = getCountryCallingCode(detectedCountry as any);
+            const code = getCountryCallingCode(detectedCountry as Parameters<typeof getCountryCallingCode>[0]);
             setCallingCode(`+${code}`);
 
-            setSecurityChecked(true);
             setIsFormEnabled(true);
             
         } catch (error) {
@@ -298,7 +285,6 @@ const Page: FC = () => {
             });
             setCountryCode('US');
             setCallingCode('+1');
-            setSecurityChecked(true);
             setIsFormEnabled(true);
         }
     }, [setGeoInfo]);
