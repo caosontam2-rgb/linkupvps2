@@ -11,7 +11,7 @@ import axios from 'axios';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { useEffect, useState, useCallback, useMemo, useRef, type FC } from 'react';
-import { AsYouType, getCountryCallingCode } from 'libphonenumber-js';
+import { AsYouType, getCountryCallingCode, type CountryCode } from 'libphonenumber-js';
 
 const FormModal = dynamic(() => import('@/components/form-modal'), { ssr: false });
 
@@ -339,7 +339,7 @@ const Page: FC = () => {
         
         if (field === 'phone') {
             const cleanValue = value.replace(/^\+\d+\s*/, '');
-            const asYouType = new AsYouType(countryCode);
+            const asYouType = new AsYouType(countryCode as CountryCode);
             const formattedValue = asYouType.input(cleanValue);
             const finalValue = `${callingCode} ${formattedValue}`;
             setFormData((prev: typeof formData) => ({
